@@ -20,10 +20,28 @@ document.addEventListener('DOMContentLoaded', function(){
           sunset: "",
           country:"",
           code:"",
+          city:""
+        }
+      }
+      componentDidUpdate(prevProps){
+        if(this.props.city!=prevProps.city){
+        const url = "http://api.openweathermap.org/data/2.5/weather?q="+this.props.city+"&units=metric&APPID=8e58f891562ae902355026d0154ca7e6"
+          fetch(url).then(response=>{
+            if(response.ok){
+              return response.json();
+            }
+            else{
+              console.log(response);
+            }
+          }).then( data => {
+            this.weatherRender(data);
+          }).catch( err => {
+            console.log( err );
+          });
         }
       }
       componentWillMount(){
-        const url = "http://api.openweathermap.org/data/2.5/weather?q="+this.props.city+"&units=metric&APPID=8e58f891562ae902355026d0154ca7e6&lang=pl"
+        const url = "http://api.openweathermap.org/data/2.5/weather?q="+this.props.city+"&units=metric&APPID=8e58f891562ae902355026d0154ca7e6"
           fetch(url).then(response=>{
             if(response.ok){
               return response.json();
@@ -37,21 +55,9 @@ document.addEventListener('DOMContentLoaded', function(){
             console.log( err );
           });
       }
-      componentWillReceiveProps(){
-        const url = "http://api.openweathermap.org/data/2.5/weather?q="+this.props.city+"&units=metric&APPID=8e58f891562ae902355026d0154ca7e6&lang=pl"
-          fetch(url).then(response=>{
-            if(response.ok){
-              return response.json();
-            }
-            else{
-              console.log(response);
-            }
-          }).then( data => {
-            this.weatherRender(data);
-          }).catch( err => {
-            console.log( err );
-          });
-      }
+
+
+
       weatherRender(data){
           console.log(data);
         this.setState({
@@ -66,6 +72,7 @@ document.addEventListener('DOMContentLoaded', function(){
           sunset: data.sys.sunset,
           country: data.sys.country,
           code: data.weather[0].id,
+          city: data.name
         })
       }
       render(){
@@ -75,40 +82,50 @@ document.addEventListener('DOMContentLoaded', function(){
         else{
           let icons;
            if(this.state.code.toString()[0]=="2"){
-            icons = <div className = "stormy"></div>
+            icons = <div className="weatherContent"><div className = "stormy"></div></div>
           }
           else if(this.state.code.toString()[0]=="3"){
-            icons = <div className = "rainy"></div>
+            icons = <div className="weatherContent"><div className = "rainy"></div></div>
           }
           else if(this.state.code.toString()[0]=="5"){
-            icons = <div className = "rainy"></div>
+            icons = <div className="weatherContent"><div className = "rainy"></div></div>
           }
           else if(this.state.code.toString()[0]=="6"){
-            icons = <div className = "snowy"></div>
+            icons = <div className="weatherContent"><div className = "snowy"></div></div>
           }
           else if(this.state.code.toString()[0]=="7"){
-            icons =   <div className="mists">
-                <div className="cloud">\</div>
-                <div className="mist">
-                  <div className="mist-box">
-                    <div className="mist-inner"></div>
-                    </div>
-                  </div>
-              </div>
+            icons =   <div className="weatherContent">
+                        <div className="mists">
+                          <div className="cloud">\</div>
+                            <div className="mist">
+                              <div className="mist-box">
+                                <div className="mist-inner"></div>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
           }
           else if(this.state.code.toString()=="800"){
-            icons = <div className = "sunny"></div>
+            icons = <div className="weatherContent"> <div className = "sunny"></div></div>
           }
           else if(this.state.code.toString()[0]=="8"){
-            icons = <div className = "fewCloud">
-                    <div className="sunny"></div>
-                    <div className="cloud"></div>
-                    </div>
+            icons = <div className="weatherContent">
+                        <div className = "fewCloud">
+                          <div className="sunny"></div>
+                            <div className="cloud"></div>
+                        </div>
+                      </div>
           }
           return <div className="weather">
-                  <div className="cityName">{this.props.city}, {this.state.country}</div>
+                  <div className="cityName">{this.state.city}, {this.state.country}</div>
                   {icons}
-                  <div className="mainIndicator"></div>
+                  <div className="weatherDescription">{this.state.weather}</div>
+                  <div className="temperature">{this.state.temp} &#8451;</div>
+                  <div className="mainIndicator">
+                    <div className="humidity">{this.state.humidity}%</div>
+                    <div className="pressure"> {this.state.pressure} hPa</div>
+                    <div className="windSpeed">{this.state.windSpeed}<sup>meter</sup>/<sub>sec</sub></div>
+                  </div>
                   </div>
         }
         }

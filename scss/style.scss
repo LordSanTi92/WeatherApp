@@ -2,7 +2,9 @@
   margin: 0;
   padding: 0;
 }
-
+body{
+  font-family: 'Lato', sans-serif;
+}
 .ipad {
   margin: 0 auto;
   background-color: rgba(0,0,0,0.54);
@@ -671,5 +673,27 @@
       0% { opacity: 0; }
       100% { opacity: 1; }
     }
+  }
+  .weatherContent{
+    height: 200px;
+    margin-top: 20px;
+  }
+  .weatherDescription{
+    font-size: 26px;
+      width: 169px;
+      color: white;
+      position: absolute;
+      top: 157px;
+      left: 83%;
+      text-align: center;
+      transform: translateX(-50%);
+  }
+  .temperature{
+    position: absolute;
+    top: 169px;
+    font-size: 25px;
+    color: white;
+    left: 18%;
+    transform: translateX(-50%);
   }
 }
