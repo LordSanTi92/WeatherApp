@@ -7,6 +7,69 @@ require("../scss/style.scss")
 // AIzaSyAuTRmCE8iOVHrEXSHnrc0oJ_M-AlkDH14
 
 document.addEventListener('DOMContentLoaded', function() {
+  class LocalTime extends React.Component{
+    constructor(props){
+      super(props)
+      this.state={
+        time:""
+      }
+    }
+    componentDidUpdate(prevProps){
+      if(prevProps.lat != this.props.lat){
+    let targetDate = new Date() // Current date/time of user computer
+    let timestamp = targetDate.getTime() / 1000 + targetDate.getTimezoneOffset() * 60;
+    timestamp = Math.round(timestamp);
+    const url = "https://maps.googleapis.com/maps/api/timezone/json?location=" + this.props.lat + ", " + this.props.lon + "&timestamp=" + timestamp + "&key=AIzaSyAuTRmCE8iOVHrEXSHnrc0oJ_M-AlkDH14"
+    fetch(url).then(response => {
+      if (response.ok) {
+        return response.json();
+      } else {
+        console.log(response);
+      }
+    }).then(time => {
+      this.checkTime(time);
+    }).catch(err => {
+      console.log(err);
+    })
+}}
+    componentWillMount(){
+    let targetDate = new Date() // Current date/time of user computer
+    let timestamp = targetDate.getTime() / 1000 + targetDate.getTimezoneOffset() * 60;
+    timestamp = Math.round(timestamp);
+    const url = "https://maps.googleapis.com/maps/api/timezone/json?location=" + this.props.lat + ", " + this.props.lon + "&timestamp=" + timestamp + "&key=AIzaSyAuTRmCE8iOVHrEXSHnrc0oJ_M-AlkDH14"
+    fetch(url).then(response => {
+      if (response.ok) {
+        return response.json();
+      } else {
+        console.log(response);
+      }
+    }).then(time => {
+      this.checkTime(time);
+    }).catch(err => {
+      console.log(err);
+    })
+}
+
+    checkTime = (time) => {
+      if(this.intervalId!=0){
+        clearInterval(this.intervalId)
+      }
+        this.intervalId = setInterval(()=>{
+      var targetDate = new Date() // Current date/time of user computer
+      var timestamp = targetDate.getTime() / 1000 + targetDate.getTimezoneOffset() * 60;
+      timestamp = Math.round(timestamp);
+      var offsets = time.dstOffset * 1000 + time.rawOffset * 1000 // get DST and time zone offsets in milliseconds
+      var localdate = new Date(timestamp * 1000 + offsets)
+      this.setState({
+        time: new Date(timestamp * 1000 + offsets).toString().slice(16,24)
+      })
+      },1000)
+    }
+    render(){
+
+      return <div className="Time"><h1>{this.state.time}</h1><h4>Locale Time</h4></div>
+    }
+  }
   class Weather extends React.Component {
     constructor(props) {
       super(props)
@@ -115,11 +178,11 @@ document.addEventListener('DOMContentLoaded', function() {
 
 
     checkTime = (time) => {
-      let targetDate = new Date() // Current date/time of user computer
-      let timestamp = targetDate.getTime() / 1000 + targetDate.getTimezoneOffset() * 60;
+      var targetDate = new Date() // Current date/time of user computer
+      var timestamp = targetDate.getTime() / 1000 + targetDate.getTimezoneOffset() * 60;
       timestamp = Math.round(timestamp);
-      let offsets = time.dstOffset * 1000 + time.rawOffset * 1000 // get DST and time zone offsets in milliseconds
-      let localdate = new Date(timestamp * 1000 + offsets)
+      var offsets = time.dstOffset * 1000 + time.rawOffset * 1000 // get DST and time zone offsets in milliseconds
+      var localdate = new Date(timestamp * 1000 + offsets)
       let sunrise = new Date(this.state.sunrise * 1000 + offsets)
       let sunset = new Date(this.state.sunset * 1000 + offsets)
       let localMin = parseInt(localdate.getHours()) * 60 + parseInt(localdate.getMinutes())
@@ -132,20 +195,8 @@ document.addEventListener('DOMContentLoaded', function() {
         sunriseMin: sunriseMin,
         sunsetMin: sunsetMin
       })
-      setInterval(()=>{
-        let targetDate = new Date() // Current date/time of user computer
-        let timestamp = targetDate.getTime() / 1000 + targetDate.getTimezoneOffset() * 60;
-        timestamp = Math.round(timestamp);
-        let offsets = time.dstOffset * 1000 + time.rawOffset * 1000 // get DST and time zone offsets in milliseconds
-        let localdate = new Date(timestamp * 1000 + offsets)
-        this.setState({
-          localTime: localdate.toString().slice(16,24)
-        })
-      },1000)
 
     }
-
-
     render() {
       if (this.state.code == "") {
         return null
@@ -283,7 +334,7 @@ document.addEventListener('DOMContentLoaded', function() {
               <h4>Wind speed</h4>
             </div>
           </div>
-          <div className="Time"><h1>{this.state.localTime}</h1><h4>Local Time</h4></div>
+          <LocalTime lat={this.state.cordLat} lon={this.state.cordLon}  />
         </div>
       }
     }

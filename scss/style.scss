@@ -10,6 +10,7 @@ body {
 
 .ipad {
   margin: 0 auto;
+  margin-top: 50px;
   background-color: rgba(19,133,234,0.26);
   height: 600px;
   width: 500px;
@@ -703,9 +704,7 @@ body {
     display: flex;
     justify-content: space-between;
   }
-  .time{
-    display: flex;
-    justify-content: center;
+  .Time{
     text-align: center;
   }
 
