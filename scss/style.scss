@@ -616,6 +616,9 @@ body {
   .weatherContent {
     height: 200px;
     margin-top: 60px;
+    position: relative;
+    left: 50%;
+    transform: translateX(-50%);
   }
 
   .weatherDescription {
@@ -643,7 +646,12 @@ body {
     justify-content: space-around;
     text-align: center;
     position: relative;
-    top: 21px;
+    top: -38px;
+
+    .pressure {
+      position: relative;
+      left: 8px;
+    }
 
     .windSpeed {
       sub,
@@ -655,8 +663,8 @@ body {
 
   .sunrise {
     position: absolute;
-    top: 267px;
-    left: 36px;
+    top: 250px;
+    left: 26px;
     text-align: center;
     width: 100px;
     height: 70px;
@@ -677,8 +685,8 @@ body {
     text-align: center;
     width: 100px;
     height: 70px;
-    top: 267px;
-    right: 36px;
+    top: 250px;
+    right: 32px;
 
     h1 {
       width: 100px;
@@ -686,8 +694,20 @@ body {
 
     h4 {
       position: relative;
-    left: 50%;
-    transform: translateX(-50%);
+      left: 50%;
+      transform: translateX(-50%);
     }
   }
+
+  .content {
+    display: flex;
+    justify-content: space-between;
+  }
+  .time{
+    display: flex;
+    justify-content: center;
+    text-align: center;
+  }
+
+
 }
