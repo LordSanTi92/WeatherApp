@@ -9521,6 +9521,8 @@ __webpack_require__(182
 // 8e58f891562ae902355026d0154ca7e6
 // 9ae4ed1ac639ddc86076ade7d88f31cb
 // 8ffa6fcb7a9453700d6ab0f782d706a2
+// AIzaSyAuTRmCE8iOVHrEXSHnrc0oJ_M-AlkDH14
+
 );document.addEventListener('DOMContentLoaded', function () {
   var Weather = function (_React$Component) {
     _inherits(Weather, _React$Component);
@@ -9530,19 +9532,41 @@ __webpack_require__(182
 
       var _this = _possibleConstructorReturn(this, (Weather.__proto__ || Object.getPrototypeOf(Weather)).call(this, props));
 
+      _this.checkTime = function (time) {
+        var targetDate = new Date(); // Current date/time of user computer
+        var timestamp = targetDate.getTime() / 1000 + targetDate.getTimezoneOffset() * 60;
+        timestamp = Math.round(timestamp);
+        var offsets = time.dstOffset * 1000 + time.rawOffset * 1000; // get DST and time zone offsets in milliseconds
+        var localdate = new Date(timestamp * 1000 + offsets);
+        var sunrise = new Date(_this.state.sunrise * 1000 + offsets);
+        var sunset = new Date(_this.state.sunset * 1000 + offsets);
+        var localMin = parseInt(localdate.getHours()) * 60 + parseInt(localdate.getMinutes());
+        var sunriseMin = parseInt(sunrise.getUTCHours()) * 60 + parseInt(localdate.getUTCMinutes());
+        var sunsetMin = parseInt(sunset.getUTCHours()) * 60 + parseInt(sunset.getUTCMinutes());
+        _this.setState({
+          sunrise: sunrise.toUTCString().slice(17, 22),
+          sunset: sunset.toUTCString().slice(17, 22),
+          localTimeMin: localMin,
+          sunriseMin: sunriseMin,
+          sunsetMin: sunsetMin
+        });
+      };
+
       _this.state = {
         weather: "",
         temp: "",
         maxtemp: "",
         minTemp: "",
-        humidity: "",
-        pressure: "",
-        windSpeed: "",
+        humidity: 0,
+        pressure: 850,
+        windSpeed: 0,
         sunrise: "",
         sunset: "",
         country: "",
         code: "",
-        city: ""
+        city: "",
+        cordLat: 0,
+        cordLon: 0
       };
       return _this;
     }
@@ -9588,20 +9612,60 @@ __webpack_require__(182
     }, {
       key: 'weatherRender',
       value: function weatherRender(data) {
+        var _this4 = this;
+
         console.log(data);
         this.setState({
           weather: data.weather[0].description,
           temp: data.main.temp,
           maxtemp: data.main.temp_max,
           minTemp: data.main.temp_min,
-          humidity: data.main.humidity,
-          pressure: data.main.pressure,
-          windSpeed: data.wind.speed,
           sunrise: data.sys.sunrise,
           sunset: data.sys.sunset,
           country: data.sys.country,
           code: data.weather[0].id,
-          city: data.name
+          city: data.name,
+          windSpeed: data.wind.speed,
+          pressure: 850,
+          humidity: 0,
+          cordLat: data.coord.lat,
+          cordLon: data.coord.lon,
+          localTime: "",
+          localTimeMin: 0,
+          sunriseMin: 0,
+          sunsetMin: 0
+
+        });
+        this.intervalId = setInterval(function () {
+          _this4.setState({
+            pressure: _this4.state.pressure + 1
+          });
+          if (_this4.state.pressure == data.main.pressure) {
+            clearInterval(_this4.intervalId);
+          }
+        }, 10);
+        this.intervalId2 = setInterval(function () {
+          _this4.setState({
+            humidity: _this4.state.humidity + 1
+          });
+          if (_this4.state.humidity == data.main.humidity) {
+            clearInterval(_this4.intervalId2);
+          }
+        }, 10);
+        var targetDate = new Date(); // Current date/time of user computer
+        var timestamp = targetDate.getTime() / 1000 + targetDate.getTimezoneOffset() * 60;
+        timestamp = Math.round(timestamp);
+        var url = "https://maps.googleapis.com/maps/api/timezone/json?location=" + this.state.cordLat + ", " + this.state.cordLon + "&timestamp=" + timestamp + "&key=AIzaSyAuTRmCE8iOVHrEXSHnrc0oJ_M-AlkDH14";
+        fetch(url).then(function (response) {
+          if (response.ok) {
+            return response.json();
+          } else {
+            console.log(response);
+          }
+        }).then(function (time) {
+          _this4.checkTime(time);
+        }).catch(function (err) {
+          console.log(err);
         });
       }
     }, {
@@ -9611,71 +9675,155 @@ __webpack_require__(182
           return null;
         } else {
           var icons = void 0;
-          if (this.state.code.toString()[0] == "2") {
-            icons = _react2.default.createElement(
-              'div',
-              { className: 'weatherContent' },
-              _react2.default.createElement('div', { className: 'stormy' })
-            );
-          } else if (this.state.code.toString()[0] == "3") {
-            icons = _react2.default.createElement(
-              'div',
-              { className: 'weatherContent' },
-              _react2.default.createElement('div', { className: 'rainy' })
-            );
-          } else if (this.state.code.toString()[0] == "5") {
-            icons = _react2.default.createElement(
-              'div',
-              { className: 'weatherContent' },
-              _react2.default.createElement('div', { className: 'rainy' })
-            );
-          } else if (this.state.code.toString()[0] == "6") {
-            icons = _react2.default.createElement(
-              'div',
-              { className: 'weatherContent' },
-              _react2.default.createElement('div', { className: 'snowy' })
-            );
-          } else if (this.state.code.toString()[0] == "7") {
-            icons = _react2.default.createElement(
-              'div',
-              { className: 'weatherContent' },
-              _react2.default.createElement(
+          // console.log(this.state.localTime);
+          // console.log(this.state.sunrise);
+          // console.log(this.state.sunset);
+          if (this.state.localTimeMin > this.state.sunriseMin && this.state.localTimeMin < this.state.sunsetMin) {
+            document.querySelector(".ipad").style.backgroundColor = "rgba(19,133,234,0.26)";
+            if (this.state.code.toString()[0] == "2") {
+              icons = _react2.default.createElement(
                 'div',
-                { className: 'mists' },
+                { className: 'weatherContent' },
+                _react2.default.createElement('div', { className: 'stormy' })
+              );
+            } else if (this.state.code.toString()[0] == "3") {
+              icons = _react2.default.createElement(
+                'div',
+                { className: 'weatherContent' },
+                _react2.default.createElement('div', { className: 'rainy' })
+              );
+            } else if (this.state.code.toString()[0] == "5") {
+              icons = _react2.default.createElement(
+                'div',
+                { className: 'weatherContent' },
+                _react2.default.createElement('div', { className: 'rainy' })
+              );
+            } else if (this.state.code.toString()[0] == "6") {
+              icons = _react2.default.createElement(
+                'div',
+                { className: 'weatherContent' },
+                _react2.default.createElement('div', { className: 'snowy' })
+              );
+            } else if (this.state.code.toString()[0] == "7") {
+              icons = _react2.default.createElement(
+                'div',
+                { className: 'weatherContent' },
                 _react2.default.createElement(
                   'div',
-                  { className: 'cloud' },
-                  '\\'
-                ),
-                _react2.default.createElement(
-                  'div',
-                  { className: 'mist' },
+                  { className: 'mists' },
+                  _react2.default.createElement('div', { className: 'cloud' }),
                   _react2.default.createElement(
                     'div',
-                    { className: 'mist-box' },
-                    _react2.default.createElement('div', { className: 'mist-inner' })
+                    { className: 'mist' },
+                    _react2.default.createElement(
+                      'div',
+                      { className: 'mist-box' },
+                      _react2.default.createElement('div', { className: 'mist-inner' })
+                    )
                   )
                 )
-              )
-            );
-          } else if (this.state.code.toString() == "800") {
-            icons = _react2.default.createElement(
-              'div',
-              { className: 'weatherContent' },
-              ' ',
-              _react2.default.createElement('div', { className: 'sunny' })
-            );
-          } else if (this.state.code.toString()[0] == "8") {
-            icons = _react2.default.createElement(
-              'div',
-              { className: 'weatherContent' },
-              _react2.default.createElement(
+              );
+            } else if (this.state.code.toString() == "800") {
+              icons = _react2.default.createElement(
                 'div',
-                { className: 'fewCloud' },
-                _react2.default.createElement('div', { className: 'sunny' }),
-                _react2.default.createElement('div', { className: 'cloud' })
-              )
-            );
+                { className: 'weatherContent' },
+                _react2.default.createElement('div', { className: 'sunny' })
+              );
+            } else if (this.state.code.toString()[0] == "8") {
+              icons = _react2.default.createElement(
+                'div',
+                { className: 'weatherContent' },
+                _react2.default.createElement(
+                  'div',
+                  { className: 'fewCloud' },
+                  _react2.default.createElement('div', { className: 'sunny' }),
+                  _react2.default.createElement('div', { className: 'cloud' })
+                )
+              );
+            }
+          } else if (this.state.localTimeMin < this.state.sunriseMin || this.state.localTimeMin > this.state.sunsetMin) {
+            document.querySelector(".ipad").style.backgroundColor = "rgba(19,133,234,0.86)";
+            if (this.state.code.toString()[0] == "2") {
+              icons = _react2.default.createElement(
+                'div',
+                { className: 'weatherContent' },
+                _react2.default.createElement(
+                  'div',
+                  { className: 'starryStorm' },
+                  _react2.default.createElement('div', { className: 'starry' }),
+                  _react2.default.createElement('div', { className: 'stormy' })
+                )
+              );
+            } else if (this.state.code.toString()[0] == "3") {
+              icons = _react2.default.createElement(
+                'div',
+                { className: 'weatherContent' },
+                _react2.default.createElement(
+                  'div',
+                  { className: 'starryRain' },
+                  _react2.default.createElement('div', { className: 'starry' }),
+                  _react2.default.createElement('div', { className: 'rainy' })
+                )
+              );
+            } else if (this.state.code.toString()[0] == "5") {
+              icons = _react2.default.createElement(
+                'div',
+                { className: 'weatherContent' },
+                _react2.default.createElement(
+                  'div',
+                  { className: 'starryRain' },
+                  _react2.default.createElement('div', { className: 'starry' }),
+                  _react2.default.createElement('div', { className: 'rainy' })
+                )
+              );
+            } else if (this.state.code.toString()[0] == "6") {
+              icons = _react2.default.createElement(
+                'div',
+                { className: 'weatherContent' },
+                _react2.default.createElement(
+                  'div',
+                  { className: 'starrySnowy' },
+                  _react2.default.createElement('div', { className: 'starry' }),
+                  _react2.default.createElement('div', { className: 'snowy' })
+                )
+              );
+            } else if (this.state.code.toString()[0] == "7") {
+              icons = _react2.default.createElement(
+                'div',
+                { className: 'weatherContent' },
+                _react2.default.createElement(
+                  'div',
+                  { className: 'mists' },
+                  _react2.default.createElement('div', { className: 'cloud' }),
+                  _react2.default.createElement(
+                    'div',
+                    { className: 'mist' },
+                    _react2.default.createElement(
+                      'div',
+                      { className: 'mist-box' },
+                      _react2.default.createElement('div', { className: 'mist-inner' })
+                    )
+                  )
+                )
+              );
+            } else if (this.state.code.toString() == "800") {
+              icons = _react2.default.createElement(
+                'div',
+                { className: 'weatherContent' },
+                _react2.default.createElement('div', { className: 'starry' })
+              );
+            } else if (this.state.code.toString()[0] == "8") {
+              icons = _react2.default.createElement(
+                'div',
+                { className: 'weatherContent' },
+                _react2.default.createElement(
+                  'div',
+                  { className: 'starryCloud' },
+                  _react2.default.createElement('div', { className: 'starry' }),
+                  _react2.default.createElement('div', { className: 'cloud' })
+                )
+              );
+            }
           }
           return _react2.default.createElement(
             'div',
@@ -9697,7 +9845,35 @@ __webpack_require__(182
               'div',
               { className: 'temperature' },
               this.state.temp,
-              ' \u2103'
+              '\u2103'
+            ),
+            _react2.default.createElement(
+              'div',
+              { className: 'sunrise' },
+              _react2.default.createElement(
+                'h1',
+                null,
+                this.state.sunrise
+              ),
+              _react2.default.createElement(
+                'h4',
+                null,
+                'Sunrise'
+              )
+            ),
+            _react2.default.createElement(
+              'div',
+              { className: 'sunset' },
+              _react2.default.createElement(
+                'h1',
+                null,
+                this.state.sunset
+              ),
+              _react2.default.createElement(
+                'h4',
+                null,
+                'Sunset'
+              )
             ),
             _react2.default.createElement(
               'div',
@@ -9705,30 +9881,60 @@ __webpack_require__(182
               _react2.default.createElement(
                 'div',
                 { className: 'humidity' },
-                this.state.humidity,
-                '%'
+                _react2.default.createElement(
+                  'h1',
+                  null,
+                  this.state.humidity,
+                  '%'
+                ),
+                _react2.default.createElement(
+                  'h4',
+                  null,
+                  'Humidity'
+                )
               ),
               _react2.default.createElement(
                 'div',
                 { className: 'pressure' },
-                ' ',
-                this.state.pressure,
-                ' hPa'
+                _react2.default.createElement(
+                  'h1',
+                  null,
+                  this.state.pressure,
+                  'hPa'
+                ),
+                _react2.default.createElement(
+                  'h4',
+                  null,
+                  'Pressure'
+                )
               ),
               _react2.default.createElement(
                 'div',
                 { className: 'windSpeed' },
-                this.state.windSpeed,
                 _react2.default.createElement(
-                  'sup',
+                  'h1',
                   null,
-                  'meter'
+                  this.state.windSpeed,
+                  _react2.default.createElement(
+                    'sup',
+                    null,
+                    'm'
+                  ),
+                  _react2.default.createElement(
+                    'span',
+                    null,
+                    '/'
+                  ),
+                  _react2.default.createElement(
+                    'sub',
+                    null,
+                    's'
+                  )
                 ),
-                '/',
                 _react2.default.createElement(
-                  'sub',
+                  'h4',
                   null,
-                  'sec'
+                  'Wind speed'
                 )
               )
             )
@@ -9746,24 +9952,22 @@ __webpack_require__(182
     function SearchBar(props) {
       _classCallCheck(this, SearchBar);
 
-      var _this4 = _possibleConstructorReturn(this, (SearchBar.__proto__ || Object.getPrototypeOf(SearchBar)).call(this, props));
+      var _this5 = _possibleConstructorReturn(this, (SearchBar.__proto__ || Object.getPrototypeOf(SearchBar)).call(this, props));
 
-      _this4.handleChange = function (event) {
-        _this4.setState({
-          value: event.target.value
-        });
+      _this5.handleChange = function (event) {
+        _this5.setState({ value: event.target.value });
       };
 
-      _this4.handleClick = function () {
-        if (typeof _this4.props.search === "function") {
-          _this4.props.search(_this4.state.value);
+      _this5.handleClick = function () {
+        if (typeof _this5.props.search === "function") {
+          _this5.props.search(_this5.state.value);
         }
       };
 
-      _this4.state = {
+      _this5.state = {
         value: ""
       };
-      return _this4;
+      return _this5;
     }
 
     _createClass(SearchBar, [{
@@ -9772,7 +9976,7 @@ __webpack_require__(182
         return _react2.default.createElement(
           'div',
           { className: 'searchBar' },
-          _react2.default.createElement('input', { className: 'input', type: 'text', onChange: this.handleChange, value: this.state.value }),
+          _react2.default.createElement('input', { className: 'input', placeholder: 'e.g. London, Warsaw', type: 'text', onChange: this.handleChange, value: this.state.value }),
           _react2.default.createElement(
             'button',
             { className: 'button', onClick: this.handleClick },
@@ -9791,21 +9995,19 @@ __webpack_require__(182
     function App(props) {
       _classCallCheck(this, App);
 
-      var _this5 = _possibleConstructorReturn(this, (App.__proto__ || Object.getPrototypeOf(App)).call(this, props));
+      var _this6 = _possibleConstructorReturn(this, (App.__proto__ || Object.getPrototypeOf(App)).call(this, props));
 
-      _this5.searchCity = function (city) {
-        _this5.setState({
-          city: city
-        });
+      _this6.searchCity = function (city) {
+        _this6.setState({ city: city });
       };
 
-      _this5.prevCity = {
+      _this6.prevCity = {
         city: ""
       };
-      _this5.state = {
+      _this6.state = {
         city: ""
       };
-      return _this5;
+      return _this6;
     }
 
     _createClass(App, [{
@@ -9824,7 +10026,13 @@ __webpack_require__(182
           _react2.default.createElement(
             'div',
             { className: 'ipad' },
+            _react2.default.createElement(
+              'div',
+              { className: 'title' },
+              'iWeather App'
+            ),
             _react2.default.createElement(SearchBar, { search: this.searchCity }),
+            ' ',
             weatherComp,
             _react2.default.createElement('div', { className: 'circle' }),
             _react2.default.createElement('div', { className: 'webCam' })
@@ -10315,7 +10523,7 @@ exports = module.exports = __webpack_require__(83)(undefined);
 
 
 // module
-exports.push([module.i, "* {\n  margin: 0;\n  padding: 0; }\n\nbody {\n  font-family: 'Lato', sans-serif; }\n\n.ipad {\n  margin: 0 auto;\n  background-color: rgba(0, 0, 0, 0.54);\n  height: 600px;\n  width: 500px;\n  border: 40px solid black;\n  border-radius: 30px;\n  position: relative;\n  z-index: 0;\n  /* STARRY */ }\n  .ipad .circle {\n    position: absolute;\n    bottom: -52px;\n    left: 50%;\n    height: 30px;\n    width: 30px;\n    border-radius: 50%;\n    transform: translate(-50%, -50%);\n    background-color: black;\n    z-index: 1;\n    border: 1px solid white; }\n  .ipad .webCam {\n    z-index: 1;\n    position: absolute;\n    left: 50%;\n    top: -15px;\n    background-color: grey;\n    height: 5px;\n    width: 5px;\n    border-radius: 50%;\n    transform: translateX(-50%); }\n  .ipad .searchBar {\n    position: relative;\n    padding-top: 20px;\n    margin: 0 auto;\n    width: 137px;\n    height: 50px; }\n    .ipad .searchBar .input {\n      padding-left: 10px;\n      height: 24px;\n      box-shadow: 0;\n      border: 1px solid grey;\n      border-radius: 20px; }\n    .ipad .searchBar .button {\n      margin-top: 5px;\n      width: 48px;\n      display: block;\n      position: absolute;\n      border: 1px solid white;\n      background-color: white;\n      border-radius: 15px;\n      left: 40px; }\n      .ipad .searchBar .button:active {\n        box-shadow: 0 0 2px black; }\n  .ipad .cityName {\n    width: 200px;\n    text-align: center;\n    margin: 0 auto;\n    font-size: 25px;\n    color: white; }\n  .ipad .sunny {\n    animation: sunny 15s linear infinite;\n    background-color: rgba(255, 255, 0, 0.2);\n    height: 140px;\n    width: 20px;\n    margin: 0 auto;\n    position: relative; }\n    .ipad .sunny:before {\n      background-color: rgba(255, 255, 0, 0.2);\n      content: '';\n      height: 140px;\n      width: 20px;\n      opacity: 1;\n      position: absolute;\n      bottom: 0px;\n      left: 0px;\n      transform: rotate(90deg); }\n    .ipad .sunny:after {\n      background: #FFEE44;\n      border-radius: 50%;\n      box-shadow: rgba(255, 255, 0, 0.2) 0 0 0 15px;\n      content: '';\n      height: 80px;\n      width: 80px;\n      position: absolute;\n      left: -30px;\n      top: 30px; }\n\n@keyframes sunny {\n  0% {\n    transform: rotate(0deg); }\n  100% {\n    transform: rotate(360deg); } }\n  .ipad .cloud {\n    animation: cloudy 5s ease-in-out infinite;\n    background: white;\n    border-radius: 50%;\n    box-shadow: white 65px -15px 0 -5px, white 25px -25px, white 30px 10px, white 60px 15px 0 -10px, white 85px 5px 0 -5px;\n    height: 50px;\n    width: 50px;\n    position: relative;\n    margin: 0 auto;\n    top: 60px;\n    left: -40px; }\n    .ipad .cloud:after {\n      animation: cloudy_shadow 5s ease-in-out infinite;\n      background: #000000;\n      border-radius: 50%;\n      content: '';\n      height: 15px;\n      width: 120px;\n      opacity: 0.2;\n      position: absolute;\n      left: 5px;\n      bottom: -60px;\n      transform: scale(1); }\n\n@keyframes cloudy {\n  50% {\n    transform: translateY(-20px); } }\n\n@keyframes cloudy_shadow {\n  50% {\n    transform: translateY(20px) scale(0.7);\n    opacity: 0.05; } }\n  .ipad .rainy {\n    animation: rainy 5s ease-in-out infinite 1s;\n    background: #CCCCCC;\n    border-radius: 50%;\n    box-shadow: #CCCCCC 65px -15px 0 -5px, #CCCCCC 25px -25px, #CCCCCC 30px 10px, #CCCCCC 60px 15px 0 -10px, #CCCCCC 85px 5px 0 -5px;\n    display: block;\n    height: 50px;\n    width: 50px;\n    height: 50px;\n    margin: 0 auto;\n    position: relative;\n    left: -40px;\n    top: 60px; }\n  .ipad .rainy:after {\n    animation: rainy_shadow 5s ease-in-out infinite 1s;\n    background: #000000;\n    border-radius: 50%;\n    content: '';\n    height: 15px;\n    width: 120px;\n    opacity: 0.2;\n    position: absolute;\n    left: 5px;\n    bottom: -60px;\n    transform: scale(1); }\n  .ipad .rainy:before {\n    animation: rainy_rain .7s infinite linear;\n    content: '';\n    background: #CCCCCC;\n    border-radius: 50%;\n    display: block;\n    height: 6px;\n    width: 3px;\n    opacity: 0.3;\n    transform: scale(0.9); }\n\n@keyframes rainy {\n  50% {\n    transform: translateY(-20px); } }\n\n@keyframes rainy_shadow {\n  50% {\n    transform: translateY(20px) scale(0.7);\n    opacity: 0.05; } }\n\n@keyframes rainy_rain {\n  0% {\n    box-shadow: transparent 30px 30px, transparent 40px 40px, #000 50px 75px, #000 55px 50px, #000 70px 100px, #000 80px 95px, #000 110px 45px, #000 90px 35px; }\n  25% {\n    box-shadow: #000 30px 45px, #000 40px 60px, #000 50px 90px, #000 55px 65px, transparent 70px 120px, transparent 80px 120px, #000 110px 70px, #000 90px 60px; }\n  26% {\n    box-shadow: #000 30px 45px, #000 40px 60px, #000 50px 90px, #000 55px 65px, transparent 70px 40px, transparent 80px 20px, #000 110px 70px, #000 90px 60px; }\n  50% {\n    box-shadow: #000 30px 70px, #000 40px 80px, transparent 50px 100px, #000 55px 80px, #000 70px 60px, #000 80px 45px, #000 110px 95px, #000 90px 85px; }\n  51% {\n    box-shadow: #000 30px 70px, #000 40px 80px, transparent 50px 45px, #000 55px 80px, #000 70px 60px, #000 80px 45px, #000 110px 95px, #000 90px 85px; }\n  75% {\n    box-shadow: #000 30px 95px, #000 40px 100px, #000 50px 60px, transparent 55px 95px, #000 70px 80px, #000 80px 70px, transparent 110px 120px, transparent 90px 110px; }\n  76% {\n    box-shadow: #000 30px 95px, #000 40px 100px, #000 50px 60px, transparent 55px 35px, #000 70px 80px, #000 80px 70px, transparent 110px 25px, transparent 90px 15px; }\n  100% {\n    box-shadow: transparent 30px 120px, transparent 40px 120px, #000 50px 75px, #000 55px 50px, #000 70px 100px, #000 80px 95px, #000 110px 45px, #000 90px 35px; } }\n  .ipad .stormy {\n    animation: stormy 5s ease-in-out infinite;\n    background: #222222;\n    border-radius: 50%;\n    box-shadow: #222222 65px -15px 0 -5px, #222222 25px -25px, #222222 30px 10px, #222222 60px 15px 0 -10px, #222222 85px 5px 0 -5px;\n    height: 50px;\n    width: 50px;\n    position: relative;\n    margin: 0 auto;\n    left: -40px;\n    top: 60px; }\n  .ipad .stormy:after {\n    animation: stormy_shadow 5s ease-in-out infinite;\n    background: #000;\n    border-radius: 50%;\n    content: '';\n    height: 15px;\n    width: 120px;\n    opacity: 0.2;\n    position: absolute;\n    left: 5px;\n    bottom: -60px;\n    transform: scale(1); }\n  .ipad .stormy:before {\n    animation: stormy_thunder 2s steps(1, end) infinite;\n    border-left: 0px solid transparent;\n    border-right: 7px solid transparent;\n    border-top: 43px solid yellow;\n    box-shadow: yellow -7px -32px;\n    content: '';\n    display: block;\n    height: 0;\n    width: 0;\n    position: absolute;\n    left: 57px;\n    top: 70px;\n    transform: rotate(14deg);\n    transform-origin: 50% -60px; }\n\n@keyframes stormy {\n  50% {\n    transform: translateY(-20px); } }\n\n@keyframes stormy_shadow {\n  50% {\n    transform: translateY(20px) scale(0.7);\n    opacity: 0.05; } }\n\n@keyframes stormy_thunder {\n  0% {\n    transform: rotate(20deg);\n    opacity: 1; }\n  5% {\n    transform: rotate(-34deg);\n    opacity: 1; }\n  10% {\n    transform: rotate(0deg);\n    opacity: 1; }\n  15% {\n    transform: rotate(-34deg);\n    opacity: 0; } }\n  .ipad .snowy {\n    animation: snowy 5s ease-in-out infinite 1s;\n    background: #FFFFFF;\n    border-radius: 50%;\n    box-shadow: #FFFFFF 65px -15px 0 -5px, #FFFFFF 25px -25px, #FFFFFF 30px 10px, #FFFFFF 60px 15px 0 -10px, #FFFFFF 85px 5px 0 -5px;\n    display: block;\n    height: 50px;\n    width: 50px;\n    margin: 0 auto;\n    position: relative;\n    left: -40px;\n    top: 60px; }\n  .ipad .snowy:after {\n    animation: snowy_shadow 5s ease-in-out infinite 1s;\n    background: #000000;\n    border-radius: 50%;\n    content: '';\n    height: 15px;\n    width: 120px;\n    opacity: 0.2;\n    position: absolute;\n    left: 8px;\n    bottom: -60px;\n    transform: scale(1); }\n  .ipad .snowy:before {\n    animation: snowy_snow 2s infinite linear;\n    content: '';\n    border-radius: 50%;\n    display: block;\n    height: 7px;\n    width: 7px;\n    opacity: 0.8;\n    transform: scale(0.9); }\n\n@keyframes snowy {\n  50% {\n    transform: translateY(-20px); } }\n\n@keyframes snowy_shadow {\n  50% {\n    transform: translateY(20px) scale(0.7);\n    opacity: 0.05; } }\n\n@keyframes snowy_snow {\n  0% {\n    box-shadow: rgba(238, 238, 238, 0) 30px 30px, rgba(238, 238, 238, 0) 40px 40px, #EEEEEE 50px 75px, #EEEEEE 55px 50px, #EEEEEE 70px 100px, #EEEEEE 80px 95px, #EEEEEE 110px 45px, #EEEEEE 90px 35px; }\n  25% {\n    box-shadow: #EEEEEE 30px 45px, #EEEEEE 40px 60px, #EEEEEE 50px 90px, #EEEEEE 55px 65px, rgba(238, 238, 238, 0) 70px 120px, rgba(238, 238, 238, 0) 80px 120px, #EEEEEE 110px 70px, #EEEEEE 90px 60px; }\n  26% {\n    box-shadow: #EEEEEE 30px 45px, #EEEEEE 40px 60px, #EEEEEE 50px 90px, #EEEEEE 55px 65px, rgba(238, 238, 238, 0) 70px 40px, rgba(238, 238, 238, 0) 80px 20px, #EEEEEE 110px 70px, #EEEEEE 90px 60px; }\n  50% {\n    box-shadow: #EEEEEE 30px 70px, #EEEEEE 40px 80px, rgba(238, 238, 238, 0) 50px 100px, #EEEEEE 55px 80px, #EEEEEE 70px 60px, #EEEEEE 80px 45px, #EEEEEE 110px 95px, #EEEEEE 90px 85px; }\n  51% {\n    box-shadow: #EEEEEE 30px 70px, #EEEEEE 40px 80px, rgba(238, 238, 238, 0) 50px 45px, #EEEEEE 55px 80px, #EEEEEE 70px 60px, #EEEEEE 80px 45px, #EEEEEE 110px 95px, #EEEEEE 90px 85px; }\n  75% {\n    box-shadow: #EEEEEE 30px 95px, #EEEEEE 40px 100px, #EEEEEE 50px 60px, rgba(238, 238, 238, 0) 55px 95px, #EEEEEE 70px 80px, #EEEEEE 80px 70px, rgba(238, 238, 238, 0) 110px 120px, rgba(238, 238, 238, 0) 90px 110px; }\n  76% {\n    box-shadow: #EEEEEE 30px 95px, #EEEEEE 40px 100px, #EEEEEE 50px 60px, rgba(238, 238, 238, 0) 55px 35px, #EEEEEE 70px 80px, #EEEEEE 80px 70px, rgba(238, 238, 238, 0) 110px 25px, rgba(238, 238, 238, 0) 90px 15px; }\n  100% {\n    box-shadow: rgba(238, 238, 238, 0) 30px 120px, rgba(238, 238, 238, 0) 40px 120px, #EEEEEE 50px 75px, #EEEEEE 55px 50px, #EEEEEE 70px 100px, #EEEEEE 80px 95px, #EEEEEE 110px 45px, #EEEEEE 90px 35px; } }\n  .ipad .starry {\n    animation: starry_star 5s ease-in-out infinite;\n    background: #fff;\n    border-radius: 50%;\n    box-shadow: #FFFFFF 26px 7px 0 -1px, rgba(255, 255, 255, 0.1) -36px -19px 0 -1px, rgba(255, 255, 255, 0.1) -51px -34px 0 -1px, #FFFFFF -52px -62px 0 -1px, #FFFFFF 14px -37px, rgba(255, 255, 255, 0.1) 41px -19px, #FFFFFF 34px -50px, rgba(255, 255, 255, 0.1) 14px -71px 0 -1px, #FFFFFF 64px -21px 0 -1px, rgba(255, 255, 255, 0.1) 32px -85px 0 -1px, #FFFFFF 64px -90px, rgba(255, 255, 255, 0.1) 60px -67px 0 -1px, #FFFFFF 34px -127px, rgba(255, 255, 255, 0.1) -26px -103px 0 -1px;\n    height: 4px;\n    width: 4px;\n    opacity: 1;\n    margin: 0 auto;\n    position: relative;\n    left: -20px;\n    top: 150px; }\n  .ipad .starry:after {\n    animation: starry 5s ease-in-out infinite;\n    border-radius: 50%;\n    box-shadow: #F5F3CE -25px 0;\n    content: '';\n    height: 100px;\n    width: 100px;\n    position: absolute;\n    top: -106px;\n    transform: rotate(5deg);\n    transform-origin: 0% 50%; }\n\n@keyframes starry {\n  50% {\n    transform: rotate(10deg); } }\n\n@keyframes starry_star {\n  50% {\n    box-shadow: rgba(255, 255, 255, 0.1) 26px 7px 0 -1px, #FFFFFF -36px -19px 0 -1px, #FFFFFF -51px -34px 0 -1px, rgba(255, 255, 255, 0.1) -52px -62px 0 -1px, rgba(255, 255, 255, 0.1) 14px -37px, #FFFFFF 41px -19px, rgba(255, 255, 255, 0.1) 34px -50px, #FFFFFF 14px -71px 0 -1px, rgba(255, 255, 255, 0.1) 64px -21px 0 -1px, #FFFFFF 32px -85px 0 -1px, rgba(255, 255, 255, 0.1) 64px -90px, #FFFFFF 60px -67px 0 -1px, rgba(255, 255, 255, 0.1) 34px -127px, #FFFFFF -26px -103px 0 -1px; } }\n  .ipad .starryCloud .starry {\n    left: -20px;\n    top: 140px; }\n    .ipad .starryCloud .starry:after, .ipad .starryCloud .starry:before {\n      animation-play-state: paused;\n      box-shadow: #F5F3CE -35px 0; }\n  .ipad .starryCloud .cloud {\n    left: -20px;\n    top: 80px;\n    background: lightgrey;\n    box-shadow: lightgrey 65px -15px 0 -5px, lightgrey 25px -25px, lightgrey 30px 10px, lightgrey 60px 15px 0 -10px, lightgrey 85px 5px 0 -5px;\n    animation-play-state: paused; }\n    .ipad .starryCloud .cloud:after, .ipad .starryCloud .cloud:before {\n      animation-play-state: paused;\n      width: 0px; }\n  .ipad .starryRain .starry {\n    left: -20px;\n    top: 140px; }\n    .ipad .starryRain .starry:after, .ipad .starryRain .starry:before {\n      animation-play-state: paused;\n      box-shadow: #F5F3CE -35px 0; }\n  .ipad .starryRain .rainy {\n    left: -20px;\n    top: 80px;\n    animation-play-state: paused; }\n    .ipad .starryRain .rainy:after {\n      width: 0px;\n      animation-play-state: paused; }\n  .ipad .starryStorm .starry {\n    left: -20px;\n    top: 140px; }\n    .ipad .starryStorm .starry:after, .ipad .starryStorm .starry:before {\n      animation-play-state: paused;\n      box-shadow: #F5F3CE -35px 0; }\n  .ipad .starryStorm .stormy {\n    left: -20px;\n    top: 80px;\n    animation-play-state: paused; }\n    .ipad .starryStorm .stormy:after {\n      width: 0px;\n      animation-play-state: paused; }\n  .ipad .starrySnowy .starry {\n    left: -20px;\n    top: 140px; }\n    .ipad .starrySnowy .starry:after, .ipad .starrySnowy .starry:before {\n      animation-play-state: paused;\n      box-shadow: #F5F3CE -35px 0; }\n  .ipad .starrySnowy .snowy {\n    left: -20px;\n    top: 80px;\n    animation-play-state: paused; }\n    .ipad .starrySnowy .snowy:after {\n      width: 0px;\n      animation-play-state: paused; }\n  .ipad .fewCloud .cloud {\n    left: -30px;\n    top: -60px;\n    animation-play-state: paused; }\n    .ipad .fewCloud .cloud:after {\n      width: 0px;\n      animation-play-state: paused; }\n  .ipad .mists .cloud {\n    animation-play-state: paused; }\n    .ipad .mists .cloud:after {\n      width: 0px;\n      animation-play-state: paused; }\n  .ipad .mists .mist {\n    top: 80px;\n    width: 130px;\n    position: relative;\n    margin: 0 auto; }\n    .ipad .mists .mist .mist-box {\n      animation: mistbox 3s ease-in-out infinite;\n      width: 130px;\n      height: 20px;\n      border-top: 4px solid white;\n      border-bottom: 4px solid white; }\n      .ipad .mists .mist .mist-box .mist-inner {\n        animation: none;\n        animation: mistboxin 2s ease-in-out infinite;\n        margin-top: 8px;\n        border-top: 4px solid white; }\n\n@keyframes mistbox {\n  0% {\n    opacity: 1; }\n  100% {\n    opacity: 0; } }\n\n@keyframes mistboxin {\n  0% {\n    opacity: 0; }\n  100% {\n    opacity: 1; } }\n  .ipad .weatherContent {\n    height: 200px;\n    margin-top: 20px; }\n  .ipad .weatherDescription {\n    font-size: 26px;\n    width: 169px;\n    color: white;\n    position: absolute;\n    top: 157px;\n    left: 83%;\n    text-align: center;\n    transform: translateX(-50%); }\n  .ipad .temperature {\n    position: absolute;\n    top: 169px;\n    font-size: 25px;\n    color: white;\n    left: 18%;\n    transform: translateX(-50%); }\n", ""]);
+exports.push([module.i, "* {\n  margin: 0;\n  padding: 0; }\n\nbody {\n  font-family: 'Lato', sans-serif; }\n\n.ipad {\n  margin: 0 auto;\n  background-color: rgba(19, 133, 234, 0.26);\n  height: 600px;\n  width: 500px;\n  border: 40px solid black;\n  border-radius: 30px;\n  position: relative;\n  z-index: 0;\n  /* STARRY */ }\n  .ipad .title {\n    width: 220px;\n    margin: 0 auto;\n    font-size: 35px; }\n  .ipad .circle {\n    position: absolute;\n    bottom: -52px;\n    left: 50%;\n    height: 30px;\n    width: 30px;\n    border-radius: 50%;\n    transform: translate(-50%, -50%);\n    background-color: black;\n    z-index: 1;\n    border: 1px solid white; }\n  .ipad .webCam {\n    z-index: 1;\n    position: absolute;\n    left: 50%;\n    top: -15px;\n    background-color: grey;\n    height: 5px;\n    width: 5px;\n    border-radius: 50%;\n    transform: translateX(-50%); }\n  .ipad .searchBar {\n    position: relative;\n    padding-top: 20px;\n    margin: 0 auto;\n    width: 137px;\n    height: 50px; }\n    .ipad .searchBar .input {\n      padding-left: 10px;\n      height: 24px;\n      box-shadow: 0;\n      border: 1px solid grey;\n      border-radius: 20px; }\n    .ipad .searchBar .button {\n      color: white;\n      margin-top: 5px;\n      width: 48px;\n      display: block;\n      position: absolute;\n      border: 1px solid black;\n      background-color: black;\n      border-radius: 15px;\n      left: 40px; }\n      .ipad .searchBar .button:active {\n        box-shadow: 0 0 2px black; }\n  .ipad .cityName {\n    width: 200px;\n    text-align: center;\n    margin: 0 auto;\n    font-size: 25px;\n    color: black; }\n  .ipad .sunny {\n    animation: sunny 15s linear infinite;\n    background-color: rgba(255, 255, 0, 0.2);\n    height: 140px;\n    width: 20px;\n    margin: 0 auto;\n    position: relative; }\n    .ipad .sunny:before {\n      background-color: rgba(255, 255, 0, 0.2);\n      content: '';\n      height: 140px;\n      width: 20px;\n      opacity: 1;\n      position: absolute;\n      bottom: 0;\n      left: 0;\n      transform: rotate(90deg); }\n    .ipad .sunny:after {\n      background: #FFEE44;\n      border-radius: 50%;\n      box-shadow: rgba(255, 255, 0, 0.2) 0 0 0 15px;\n      content: '';\n      height: 80px;\n      width: 80px;\n      position: absolute;\n      left: -30px;\n      top: 30px; }\n\n@keyframes sunny {\n  0% {\n    transform: rotate(0deg); }\n  100% {\n    transform: rotate(360deg); } }\n  .ipad .cloud {\n    animation: cloudy 5s ease-in-out infinite;\n    background: white;\n    border-radius: 50%;\n    box-shadow: white 65px -15px 0 -5px, white 25px -25px, white 30px 10px, white 60px 15px 0 -10px, white 85px 5px 0 -5px;\n    height: 50px;\n    width: 50px;\n    position: relative;\n    margin: 0 auto;\n    top: 60px;\n    left: -40px; }\n    .ipad .cloud:after {\n      animation: cloudy_shadow 5s ease-in-out infinite;\n      background: #000000;\n      border-radius: 50%;\n      content: '';\n      height: 15px;\n      width: 120px;\n      opacity: 0.2;\n      position: absolute;\n      left: 5px;\n      bottom: -60px;\n      transform: scale(1); }\n\n@keyframes cloudy {\n  50% {\n    transform: translateY(-20px); } }\n\n@keyframes cloudy_shadow {\n  50% {\n    transform: translateY(20px) scale(0.7);\n    opacity: 0.05; } }\n  .ipad .rainy {\n    animation: rainy 5s ease-in-out infinite 1s;\n    background: #CCCCCC;\n    border-radius: 50%;\n    box-shadow: #CCCCCC 65px -15px 0 -5px, #CCCCCC 25px -25px, #CCCCCC 30px 10px, #CCCCCC 60px 15px 0 -10px, #CCCCCC 85px 5px 0 -5px;\n    display: block;\n    height: 50px;\n    width: 50px;\n    height: 50px;\n    margin: 0 auto;\n    position: relative;\n    left: -40px;\n    top: 60px; }\n  .ipad .rainy:after {\n    animation: rainy_shadow 5s ease-in-out infinite 1s;\n    background: #000000;\n    border-radius: 50%;\n    content: '';\n    height: 15px;\n    width: 120px;\n    opacity: 0.2;\n    position: absolute;\n    left: 5px;\n    bottom: -60px;\n    transform: scale(1); }\n  .ipad .rainy:before {\n    animation: rainy_rain 0.7s infinite linear;\n    content: '';\n    background: #CCCCCC;\n    border-radius: 50%;\n    display: block;\n    height: 6px;\n    width: 3px;\n    opacity: 0.3;\n    transform: scale(0.9); }\n\n@keyframes rainy {\n  50% {\n    transform: translateY(-20px); } }\n\n@keyframes rainy_shadow {\n  50% {\n    transform: translateY(20px) scale(0.7);\n    opacity: 0.05; } }\n\n@keyframes rainy_rain {\n  0% {\n    box-shadow: transparent 30px 30px, transparent 40px 40px, #000 50px 75px, #000 55px 50px, #000 70px 100px, #000 80px 95px, #000 110px 45px, #000 90px 35px; }\n  25% {\n    box-shadow: #000 30px 45px, #000 40px 60px, #000 50px 90px, #000 55px 65px, transparent 70px 120px, transparent 80px 120px, #000 110px 70px, #000 90px 60px; }\n  26% {\n    box-shadow: #000 30px 45px, #000 40px 60px, #000 50px 90px, #000 55px 65px, transparent 70px 40px, transparent 80px 20px, #000 110px 70px, #000 90px 60px; }\n  50% {\n    box-shadow: #000 30px 70px, #000 40px 80px, transparent 50px 100px, #000 55px 80px, #000 70px 60px, #000 80px 45px, #000 110px 95px, #000 90px 85px; }\n  51% {\n    box-shadow: #000 30px 70px, #000 40px 80px, transparent 50px 45px, #000 55px 80px, #000 70px 60px, #000 80px 45px, #000 110px 95px, #000 90px 85px; }\n  75% {\n    box-shadow: #000 30px 95px, #000 40px 100px, #000 50px 60px, transparent 55px 95px, #000 70px 80px, #000 80px 70px, transparent 110px 120px, transparent 90px 110px; }\n  76% {\n    box-shadow: #000 30px 95px, #000 40px 100px, #000 50px 60px, transparent 55px 35px, #000 70px 80px, #000 80px 70px, transparent 110px 25px, transparent 90px 15px; }\n  100% {\n    box-shadow: transparent 30px 120px, transparent 40px 120px, #000 50px 75px, #000 55px 50px, #000 70px 100px, #000 80px 95px, #000 110px 45px, #000 90px 35px; } }\n  .ipad .stormy {\n    animation: stormy 5s ease-in-out infinite;\n    background: #222222;\n    border-radius: 50%;\n    box-shadow: #222222 65px -15px 0 -5px, #222222 25px -25px, #222222 30px 10px, #222222 60px 15px 0 -10px, #222222 85px 5px 0 -5px;\n    height: 50px;\n    width: 50px;\n    position: relative;\n    margin: 0 auto;\n    left: -40px;\n    top: 60px; }\n  .ipad .stormy:after {\n    animation: stormy_shadow 5s ease-in-out infinite;\n    background: #000;\n    border-radius: 50%;\n    content: '';\n    height: 15px;\n    width: 120px;\n    opacity: 0.2;\n    position: absolute;\n    left: 5px;\n    bottom: -60px;\n    transform: scale(1); }\n  .ipad .stormy:before {\n    animation: stormy_thunder 2s steps(1, end) infinite;\n    border-left: 0 solid transparent;\n    border-right: 7px solid transparent;\n    border-top: 43px solid yellow;\n    box-shadow: yellow -7px -32px;\n    content: '';\n    display: block;\n    height: 0;\n    width: 0;\n    position: absolute;\n    left: 57px;\n    top: 70px;\n    transform: rotate(14deg);\n    transform-origin: 50% -60px; }\n\n@keyframes stormy {\n  50% {\n    transform: translateY(-20px); } }\n\n@keyframes stormy_shadow {\n  50% {\n    transform: translateY(20px) scale(0.7);\n    opacity: 0.05; } }\n\n@keyframes stormy_thunder {\n  0% {\n    transform: rotate(20deg);\n    opacity: 1; }\n  5% {\n    transform: rotate(-34deg);\n    opacity: 1; }\n  10% {\n    transform: rotate(0deg);\n    opacity: 1; }\n  15% {\n    transform: rotate(-34deg);\n    opacity: 0; } }\n  .ipad .snowy {\n    animation: snowy 5s ease-in-out infinite 1s;\n    background: #FFFFFF;\n    border-radius: 50%;\n    box-shadow: #FFFFFF 65px -15px 0 -5px, #FFFFFF 25px -25px, #FFFFFF 30px 10px, #FFFFFF 60px 15px 0 -10px, #FFFFFF 85px 5px 0 -5px;\n    display: block;\n    height: 50px;\n    width: 50px;\n    margin: 0 auto;\n    position: relative;\n    left: -40px;\n    top: 60px; }\n  .ipad .snowy:after {\n    animation: snowy_shadow 5s ease-in-out infinite 1s;\n    background: #000000;\n    border-radius: 50%;\n    content: '';\n    height: 15px;\n    width: 120px;\n    opacity: 0.2;\n    position: absolute;\n    left: 8px;\n    bottom: -60px;\n    transform: scale(1); }\n  .ipad .snowy:before {\n    animation: snowy_snow 2s infinite linear;\n    content: '';\n    border-radius: 50%;\n    display: block;\n    height: 7px;\n    width: 7px;\n    opacity: 0.8;\n    transform: scale(0.9); }\n\n@keyframes snowy {\n  50% {\n    transform: translateY(-20px); } }\n\n@keyframes snowy_shadow {\n  50% {\n    transform: translateY(20px) scale(0.7);\n    opacity: 0.05; } }\n\n@keyframes snowy_snow {\n  0% {\n    box-shadow: rgba(238, 238, 238, 0) 30px 30px, rgba(238, 238, 238, 0) 40px 40px, #EEEEEE 50px 75px, #EEEEEE 55px 50px, #EEEEEE 70px 100px, #EEEEEE 80px 95px, #EEEEEE 110px 45px, #EEEEEE 90px 35px; }\n  25% {\n    box-shadow: #EEEEEE 30px 45px, #EEEEEE 40px 60px, #EEEEEE 50px 90px, #EEEEEE 55px 65px, rgba(238, 238, 238, 0) 70px 120px, rgba(238, 238, 238, 0) 80px 120px, #EEEEEE 110px 70px, #EEEEEE 90px 60px; }\n  26% {\n    box-shadow: #EEEEEE 30px 45px, #EEEEEE 40px 60px, #EEEEEE 50px 90px, #EEEEEE 55px 65px, rgba(238, 238, 238, 0) 70px 40px, rgba(238, 238, 238, 0) 80px 20px, #EEEEEE 110px 70px, #EEEEEE 90px 60px; }\n  50% {\n    box-shadow: #EEEEEE 30px 70px, #EEEEEE 40px 80px, rgba(238, 238, 238, 0) 50px 100px, #EEEEEE 55px 80px, #EEEEEE 70px 60px, #EEEEEE 80px 45px, #EEEEEE 110px 95px, #EEEEEE 90px 85px; }\n  51% {\n    box-shadow: #EEEEEE 30px 70px, #EEEEEE 40px 80px, rgba(238, 238, 238, 0) 50px 45px, #EEEEEE 55px 80px, #EEEEEE 70px 60px, #EEEEEE 80px 45px, #EEEEEE 110px 95px, #EEEEEE 90px 85px; }\n  75% {\n    box-shadow: #EEEEEE 30px 95px, #EEEEEE 40px 100px, #EEEEEE 50px 60px, rgba(238, 238, 238, 0) 55px 95px, #EEEEEE 70px 80px, #EEEEEE 80px 70px, rgba(238, 238, 238, 0) 110px 120px, rgba(238, 238, 238, 0) 90px 110px; }\n  76% {\n    box-shadow: #EEEEEE 30px 95px, #EEEEEE 40px 100px, #EEEEEE 50px 60px, rgba(238, 238, 238, 0) 55px 35px, #EEEEEE 70px 80px, #EEEEEE 80px 70px, rgba(238, 238, 238, 0) 110px 25px, rgba(238, 238, 238, 0) 90px 15px; }\n  100% {\n    box-shadow: rgba(238, 238, 238, 0) 30px 120px, rgba(238, 238, 238, 0) 40px 120px, #EEEEEE 50px 75px, #EEEEEE 55px 50px, #EEEEEE 70px 100px, #EEEEEE 80px 95px, #EEEEEE 110px 45px, #EEEEEE 90px 35px; } }\n  .ipad .starry {\n    animation: starry_star 5s ease-in-out infinite;\n    background: #fff;\n    border-radius: 50%;\n    box-shadow: #FFFFFF 26px 7px 0 -1px, rgba(255, 255, 255, 0.1) -36px -19px 0 -1px, rgba(255, 255, 255, 0.1) -51px -34px 0 -1px, #FFFFFF -52px -62px 0 -1px, #FFFFFF 14px -37px, rgba(255, 255, 255, 0.1) 41px -19px, #FFFFFF 34px -50px, rgba(255, 255, 255, 0.1) 14px -71px 0 -1px, #FFFFFF 64px -21px 0 -1px, rgba(255, 255, 255, 0.1) 32px -85px 0 -1px, #FFFFFF 64px -90px, rgba(255, 255, 255, 0.1) 60px -67px 0 -1px, #FFFFFF 34px -127px, rgba(255, 255, 255, 0.1) -26px -103px 0 -1px;\n    height: 4px;\n    width: 4px;\n    opacity: 1;\n    margin: 0 auto;\n    position: relative;\n    left: -17px;\n    top: 125px; }\n  .ipad .starry:after {\n    animation: starry 5s ease-in-out infinite;\n    border-radius: 50%;\n    box-shadow: #F5F3CE -25px 0;\n    content: '';\n    height: 100px;\n    width: 100px;\n    position: absolute;\n    top: -106px;\n    transform: rotate(5deg);\n    transform-origin: 0 50%; }\n\n@keyframes starry {\n  50% {\n    transform: rotate(10deg); } }\n\n@keyframes starry_star {\n  50% {\n    box-shadow: rgba(255, 255, 255, 0.1) 26px 7px 0 -1px, #FFFFFF -36px -19px 0 -1px, #FFFFFF -51px -34px 0 -1px, rgba(255, 255, 255, 0.1) -52px -62px 0 -1px, rgba(255, 255, 255, 0.1) 14px -37px, #FFFFFF 41px -19px, rgba(255, 255, 255, 0.1) 34px -50px, #FFFFFF 14px -71px 0 -1px, rgba(255, 255, 255, 0.1) 64px -21px 0 -1px, #FFFFFF 32px -85px 0 -1px, rgba(255, 255, 255, 0.1) 64px -90px, #FFFFFF 60px -67px 0 -1px, rgba(255, 255, 255, 0.1) 34px -127px, #FFFFFF -26px -103px 0 -1px; } }\n  .ipad .starryCloud .starry {\n    left: -20px;\n    top: 140px; }\n    .ipad .starryCloud .starry:after, .ipad .starryCloud .starry:before {\n      animation-play-state: paused;\n      box-shadow: #F5F3CE -35px 0; }\n  .ipad .starryCloud .cloud {\n    left: -20px;\n    top: 80px;\n    background: lightgrey;\n    box-shadow: lightgrey 65px -15px 0 -5px, lightgrey 25px -25px, lightgrey 30px 10px, lightgrey 60px 15px 0 -10px, lightgrey 85px 5px 0 -5px;\n    animation-play-state: paused; }\n    .ipad .starryCloud .cloud:after, .ipad .starryCloud .cloud:before {\n      animation-play-state: paused;\n      width: 0; }\n  .ipad .starryRain .starry {\n    left: -20px;\n    top: 140px; }\n    .ipad .starryRain .starry:after, .ipad .starryRain .starry:before {\n      animation-play-state: paused;\n      box-shadow: #F5F3CE -35px 0; }\n  .ipad .starryRain .rainy {\n    left: -20px;\n    top: 80px;\n    animation-play-state: paused; }\n    .ipad .starryRain .rainy:after {\n      width: 0;\n      animation-play-state: paused; }\n  .ipad .starryStorm .starry {\n    left: -20px;\n    top: 140px; }\n    .ipad .starryStorm .starry:after, .ipad .starryStorm .starry:before {\n      animation-play-state: paused;\n      box-shadow: #F5F3CE -35px 0; }\n  .ipad .starryStorm .stormy {\n    left: -20px;\n    top: 80px;\n    animation-play-state: paused; }\n    .ipad .starryStorm .stormy:after {\n      width: 0;\n      animation-play-state: paused; }\n  .ipad .starrySnowy .starry {\n    left: -20px;\n    top: 140px; }\n    .ipad .starrySnowy .starry:after, .ipad .starrySnowy .starry:before {\n      animation-play-state: paused;\n      box-shadow: #F5F3CE -35px 0; }\n  .ipad .starrySnowy .snowy {\n    left: -20px;\n    top: 80px;\n    animation-play-state: paused; }\n    .ipad .starrySnowy .snowy:after {\n      width: 0;\n      animation-play-state: paused; }\n  .ipad .fewCloud .cloud {\n    left: -30px;\n    top: -60px;\n    animation-play-state: paused; }\n    .ipad .fewCloud .cloud:after {\n      width: 0;\n      animation-play-state: paused; }\n  .ipad .mists .cloud {\n    animation-play-state: paused; }\n    .ipad .mists .cloud:after {\n      width: 0;\n      animation-play-state: paused; }\n  .ipad .mists .mist {\n    top: 80px;\n    width: 130px;\n    position: relative;\n    margin: 0 auto; }\n    .ipad .mists .mist .mist-box {\n      animation: mistbox 3s ease-in-out infinite;\n      width: 130px;\n      height: 20px;\n      border-top: 4px solid white;\n      border-bottom: 4px solid white; }\n      .ipad .mists .mist .mist-box .mist-inner {\n        animation: none;\n        animation: mistboxin 2s ease-in-out infinite;\n        margin-top: 8px;\n        border-top: 4px solid white; }\n\n@keyframes mistbox {\n  0% {\n    opacity: 1; }\n  100% {\n    opacity: 0; } }\n\n@keyframes mistboxin {\n  0% {\n    opacity: 0; }\n  100% {\n    opacity: 1; } }\n  .ipad .weatherContent {\n    height: 200px;\n    margin-top: 60px; }\n  .ipad .weatherDescription {\n    font-size: 26px;\n    width: 344px;\n    color: black;\n    position: absolute;\n    top: 359px;\n    left: 50%;\n    text-align: center;\n    transform: translateX(-50%); }\n  .ipad .temperature {\n    position: absolute;\n    top: 150px;\n    font-size: 45px;\n    color: black;\n    left: 50%;\n    transform: translateX(-50%); }\n  .ipad .mainIndicator {\n    display: flex;\n    justify-content: space-around;\n    text-align: center;\n    position: relative;\n    top: 21px; }\n    .ipad .mainIndicator .windSpeed sub,\n    .ipad .mainIndicator .windSpeed sup {\n      font-size: 15px; }\n  .ipad .sunrise {\n    position: absolute;\n    top: 267px;\n    left: 36px;\n    text-align: center;\n    width: 100px;\n    height: 70px; }\n    .ipad .sunrise h1 {\n      width: 100px; }\n    .ipad .sunrise h4 {\n      position: relative;\n      left: 50%;\n      transform: translateX(-50%); }\n  .ipad .sunset {\n    position: absolute;\n    text-align: center;\n    width: 100px;\n    height: 70px;\n    top: 267px;\n    right: 36px; }\n    .ipad .sunset h1 {\n      width: 100px; }\n    .ipad .sunset h4 {\n      position: relative;\n      left: 50%;\n      transform: translateX(-50%); }\n", ""]);
 
 // exports
 
