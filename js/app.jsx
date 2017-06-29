@@ -91,7 +91,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     componentDidUpdate(prevProps) {
       if (this.props.city != prevProps.city) {
-        const url = "http://api.openweathermap.org/data/2.5/weather?q=" + this.props.city + "&units=metric&APPID=8e58f891562ae902355026d0154ca7e6"
+        const url = "https://api.openweathermap.org/data/2.5/weather?q=" + this.props.city + "&units=metric&APPID=8e58f891562ae902355026d0154ca7e6"
         fetch(url).then(response => {
           if (response.ok) {
             return response.json();
@@ -106,7 +106,7 @@ document.addEventListener('DOMContentLoaded', function() {
       }
     }
     componentWillMount() {
-      const url = "http://api.openweathermap.org/data/2.5/weather?q=" + this.props.city + "&units=metric&APPID=8e58f891562ae902355026d0154ca7e6"
+      const url = "https://api.openweathermap.org/data/2.5/weather?q=" + this.props.city + "&units=metric&APPID=8e58f891562ae902355026d0154ca7e6"
       fetch(url).then(response => {
         if (response.ok) {
           return response.json();

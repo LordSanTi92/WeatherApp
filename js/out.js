@@ -9674,7 +9674,7 @@ __webpack_require__(182
         var _this5 = this;
 
         if (this.props.city != prevProps.city) {
-          var url = "http://api.openweathermap.org/data/2.5/weather?q=" + this.props.city + "&units=metric&APPID=8e58f891562ae902355026d0154ca7e6";
+          var url = "https://api.openweathermap.org/data/2.5/weather?q=" + this.props.city + "&units=metric&APPID=8e58f891562ae902355026d0154ca7e6";
           fetch(url).then(function (response) {
             if (response.ok) {
               return response.json();
@@ -9693,7 +9693,7 @@ __webpack_require__(182
       value: function componentWillMount() {
         var _this6 = this;
 
-        var url = "http://api.openweathermap.org/data/2.5/weather?q=" + this.props.city + "&units=metric&APPID=8e58f891562ae902355026d0154ca7e6";
+        var url = "https://api.openweathermap.org/data/2.5/weather?q=" + this.props.city + "&units=metric&APPID=8e58f891562ae902355026d0154ca7e6";
         fetch(url).then(function (response) {
           if (response.ok) {
             return response.json();
