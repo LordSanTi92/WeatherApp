@@ -10315,7 +10315,6 @@ __webpack_require__(226
             var _$$css;
 
             $(".ipad").css((_$$css = { background: "#2ab0ed" }, _defineProperty(_$$css, 'background', "-moz-linear-gradient(-45deg, #2ab0ed 0%, #9fd8ef 39%, #bfe8f9 50%, #e4f5fc 100%)"), _defineProperty(_$$css, 'background', "-webkit-linear-gradient(-45deg, #2ab0ed 0%,#9fd8ef 39%,#bfe8f9 50%,#e4f5fc 100%)"), _defineProperty(_$$css, 'background', "linear-gradient(135deg, #2ab0ed 0%,#9fd8ef 39%,#bfe8f9 50%,#e4f5fc 100%)"), _defineProperty(_$$css, 'filter', "progid:DXImageTransform.Microsoft.gradient( startColorstr='#2ab0ed', endColorstr='#e4f5fc',GradientType=1 )"), _$$css));
-
             if (this.state.code.toString()[0] == "2") {
               icons = _react2.default.createElement(
                 'div',
