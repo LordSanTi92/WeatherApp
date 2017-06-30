@@ -174,7 +174,7 @@ document.addEventListener('DOMContentLoaded', function() {
         this.setState({
           pressure: this.state.pressure + 1
         })
-        if (this.state.pressure == data.main.pressure) {
+        if (this.state.pressure == Math.round(parseInt(data.main.pressure))) {
           clearInterval(this.intervalId)
         }
       }, 10)
