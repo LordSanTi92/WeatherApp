@@ -34,37 +34,59 @@ body {
     }
   }
 .weatherLanding{
-    animation: fadein 10s;
-  margin: 0 auto;
+  animation: rotateParent 30s infinite;
+  margin: 75px auto;
     height: 300px;
     width: 300px;
     position: relative;
+    border-radius: 50%;
+	transform: rotate(0deg);
+	transition: linear;
+  // border: 1px solid white;
     .weatherContent1{
-      animation: in;
+      animation: rotate1 30s infinite;
+      transform: rotate(0deg);
       position: absolute;
-    top: 96px;
-    left: 0px;
+    top: 54px;
+    left: 18px;
+    width: 10px;
+    height: 10px;
     }
     .weatherContent2{
+      width: 10px;
+      height: 10px;
+      animation: rotate1 30s infinite;
       position: absolute;
-    top: 96px;
-    right: 0px;
+    top: 51px;
+    right: 18px;
     }
     .weatherContent3{
+      width: 10px;
+      height: 10px;
+      animation: rotate1 30s infinite;
       position: absolute;
-    top: 0px;
+    top: -59px;
     left: 50%;
     transform: translateX(-50%)
     }
     .weatherContent4{
+      width: 10px;
+      height: 10px;
+      animation: rotate1 30s infinite;
       position: absolute;
-    top: 240px;
+    top: 199px;
     left: 23px
     }
     .weatherContent5{
+      width: 10px;
+      height: 10px;
+      animation: rotate1 30s infinite;
       position: absolute;
-    top: 230px;
-    right: 23px;
+    top: 195px;
+    right: 87px;
+    .mist{
+      left:-42px;
+    }
     }
 
     @keyframes fadein {
@@ -75,6 +97,22 @@ body {
         opacity: 1;
       }
     }
+    // @keyframes rotateParent{
+    //   0%{
+    //     transform:rotate(0deg)
+    //   }
+    //   100%{
+    //     transform:rotate(360deg)
+    //   }
+    // }
+    // @keyframes rotate1{
+    //   0%{
+    //     transform:rotate(-0deg)
+    //   }
+    //   100%{
+    //     transform:rotate(-360deg)
+    //   }
+    // }
 
 
 }
