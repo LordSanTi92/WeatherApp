@@ -96,7 +96,8 @@ document.addEventListener('DOMContentLoaded', function() {
         city: "",
         cordLat: 0,
         cordLon: 0,
-        citiCode: ""
+        citiCode: "",
+        id:""
       }
     }
 
@@ -230,9 +231,6 @@ document.addEventListener('DOMContentLoaded', function() {
         return null
       } else {
         let icons;
-        console.log(this.state.localTimeMin);
-        console.log(this.state.sunriseMin);
-        console.log(this.state.sunsetMin);
         if (this.state.localTimeMin >= this.state.sunriseMin && this.state.localTimeMin <= this.state.sunsetMin) {
           $(".ipad").css({background: "#2ab0ed", background: "-moz-linear-gradient(-45deg, #2ab0ed 0%, #9fd8ef 39%, #bfe8f9 50%, #e4f5fc 100%)", background: "-webkit-linear-gradient(-45deg, #2ab0ed 0%,#9fd8ef 39%,#bfe8f9 50%,#e4f5fc 100%)", background: "linear-gradient(135deg, #2ab0ed 0%,#9fd8ef 39%,#bfe8f9 50%,#e4f5fc 100%)", filter: "progid:DXImageTransform.Microsoft.gradient( startColorstr='#2ab0ed', endColorstr='#e4f5fc',GradientType=1 )"})
 
@@ -332,7 +330,7 @@ document.addEventListener('DOMContentLoaded', function() {
         $( ".weather" ).css("opacity","0")
         $( ".weather" ).fadeTo(3000,1)
 
-        return    <div className="weather">
+        return  <div className="weather">
           <div className="cityName">{this.state.city}, {this.state.country}</div>
           <div className="content">
             <div className="sunrise">
@@ -369,6 +367,7 @@ document.addEventListener('DOMContentLoaded', function() {
           </div>
           <LocalTime lat={this.state.cordLat} lon={this.state.cordLon}/>
         </div>
+        // :<div className="error">Please check if city name is correct. If yes there might be a OpenWeather Api problem. Please try again later. We are want to apologize for inconvenience.</div>
 
 
       }
@@ -458,8 +457,8 @@ document.addEventListener('DOMContentLoaded', function() {
         </div>
       }
 
-      return  <div className="container">
-        <div className="ipad">
+      return <div className="container">
+      <div className="ipad">
           <div className="title">iWeather App</div>
           <SearchBar search={this.searchCity}/>
           {weatherComp }
