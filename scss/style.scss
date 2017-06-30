@@ -118,13 +118,13 @@ body {
     height: 32px;
 
     .input {
+      width: 127px;
       padding-left: 10px;
     height: 24px;
     border: 1px solid grey;
     border-radius: 20px;
     position: relative;
-    top: 50%;
-    transform: translatey(-50%);
+    top: 1px;
     }
 
     .button {
