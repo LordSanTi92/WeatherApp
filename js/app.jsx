@@ -388,6 +388,7 @@ document.addEventListener('DOMContentLoaded', function() {
     handleClick = () => {
       if (typeof this.props.search === "function") {
         this.props.search(this.state.value)
+        this.state.value=""
       }
 
     }

@@ -10445,6 +10445,7 @@ __webpack_require__(189
       _this8.handleClick = function () {
         if (typeof _this8.props.search === "function") {
           _this8.props.search(_this8.state.value);
+          _this8.state.value = "";
         }
       };
 
