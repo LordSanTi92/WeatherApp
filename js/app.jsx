@@ -149,8 +149,6 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     weatherRender(data) {
-
-      console.log(data);
       this.setState({
         citiCode: data.id,
         weather: data.weather[0].description,

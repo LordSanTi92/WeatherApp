@@ -10089,7 +10089,6 @@ __webpack_require__(189
       value: function weatherRender(data) {
         var _this7 = this;
 
-        console.log(data);
         this.setState({
           citiCode: data.id,
           weather: data.weather[0].description,
